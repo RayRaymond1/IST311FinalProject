@@ -3,7 +3,9 @@ package application;
 import java.sql.*;
 import java.util.ArrayList;
 
+import Controller.MainController;
 import Model.Employee;
+import Model.EmployeeModel;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,6 +25,13 @@ import javafx.scene.layout.VBox;
 
 public class ApplicationView extends Application 
 {
+	public final static String DB_URL = "jdbc:mysql://localhost:3306/projectdb";
+	public final static String DB_USERNAME = "root";
+	public final static String DB_PASSWORD = "admin";
+	
+	private MainController controller = new MainController();
+	private EmployeeModel model = new EmployeeModel();
+	
 	private TextField id, first_name, last_name, start_date, start_salary, employee_contract_signed, 
 	social_security_number, birth_date, phone_number, 
 	 emergency_contact, emergency_number;
@@ -46,17 +55,17 @@ public class ApplicationView extends Application
 	@Override
 	public void start(Stage primaryStage)throws SQLException, ClassNotFoundException 
 	{
-			primaryStage.setTitle("Employee Data");
+			primaryStage.setTitle("XYZ Company Management Software");
 			
 			Label topLabel = new Label();
 			topLabel.setStyle("-fx-font: 20 comic_sans;");
 			topLabel.setPadding(new Insets(10, 10, 10, 10));
 			topLabel.setText("Employee Records");
 			
-			//Show window
-			buildData();
+			//building the table's columns
+			buildTable();
 			
-			//Text fields
+			//Text fields that we will reuse for each function
 			id = new TextField();
 			id.setPromptText("Id");
 			id.setMaxWidth(30);
@@ -103,7 +112,7 @@ public class ApplicationView extends Application
 			emergency_number.setPromptText("Emergency Number");
 			emergency_number.setMinWidth(100);
 			
-			//Button
+			//Each of these buttons will create the view needed for each CRUD feature
 			Button nwEmpBtn = new Button("New Employee");
 			nwEmpBtn.setOnAction(e -> { newEmployee();});
 			
@@ -141,136 +150,68 @@ public class ApplicationView extends Application
 			primaryStage.show();
 	}
 
-	public void buildData() throws SQLException, ClassNotFoundException 
-	{
-		//SQL Database Connection Parameters
-		Connection myConn = null;
-		Statement myStat = null;
-		ResultSet myRs = null;
-		
-		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
-		String dbUsername = "root";
-		String dbPassword = "admin";
-		
-		try {
-			//1. Get a Connection
-			myConn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+	public void buildTable()
+	{		
+			//creating table columns
+	        TableColumn< Employee, String> column1 = new TableColumn<>("ID");
+	        column1.setMinWidth(40);
+	        column1.setCellValueFactory( new PropertyValueFactory<>("id"));
+			tableView.getColumns().add(column1);
+	        
+	        TableColumn< Employee, String> column2 = new TableColumn<>("First Name");
+	        column2.setMinWidth(100);
+	        column2.setCellValueFactory( new PropertyValueFactory<>("first_name"));
+			tableView.getColumns().add(column2);
 			
-			System.out.println("Database Connection successful! \n");
+	        TableColumn< Employee, String> column3 = new TableColumn<>("Last Name");
+	        column3.setMinWidth(100);
+	        column3.setCellValueFactory( new PropertyValueFactory<>("last_name"));
+			tableView.getColumns().add(column3);
 			
-			//2. Create a statement
-			myStat = myConn.createStatement();
+			TableColumn< Employee, String> column4 = new TableColumn<>("Start Date");
+	        column4.setMinWidth(100);
+	        column4.setCellValueFactory( new PropertyValueFactory<>("start_date"));
+			tableView.getColumns().add(column4);
 			
-			//3. Execute SQL query
-			myRs = myStat.executeQuery("select * from employeeTB");
+			TableColumn< Employee, Integer> column5 = new TableColumn<>("Start Salary");
+	        column5.setMinWidth(100);
+	        column5.setCellValueFactory( new PropertyValueFactory<>("start_salary"));
+			tableView.getColumns().add(column5);
 			
-			PreparedStatement preparedStatement = myConn.prepareStatement("select * from employeeTb");
-			myRs = preparedStatement.executeQuery();
+			TableColumn< Employee, String> column6 = new TableColumn<>("Employee Contract Signed");
+	        column6.setMinWidth(150);
+	        column6.setCellValueFactory( new PropertyValueFactory<>("employee_contract_signed"));
+			tableView.getColumns().add(column6);
 			
-			ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
-		
-			//Giving readable names to columns
-			for(int i = 0; i < myRs.getMetaData().getColumnCount(); i++)
-			{
-				TableColumn column = new TableColumn<>();
-				switch (myRs.getMetaData().getColumnName(i+1))
-				{
-					case "id":
-						column.setText("Employee ID");
-						column.setMinWidth(40);
-						break;
-						
-					case "last_name":
-						column.setText("Last Name");
-						column.setMinWidth(100);
-						break;
-					
-					case "first_name":
-						column.setText("First Name");
-						column.setMinWidth(100);
-						break;
-						
-					case "start_salary":
-						column.setText("Salary");
-						column.setMinWidth(100);
-						break;
-						
-					case "employee_contract_signed":
-						column.setText("Contract Signed");
-						column.setMinWidth(150);
-						break;
-						
-					case "social_security_number":
-						column.setText("Social Security Number");
-						column.setMinWidth(175);
-						break;
-						
-					case "birth_date":
-						column.setText("Birth Date");
-						column.setMinWidth(100);
-						break;
-						
-					case "phone_number":
-						column.setText("Phone Number");
-						column.setMinWidth(100);
-						break;
-						
-					case "emergency_contact":
-						column.setText("Emergency Contact");
-						column.setMinWidth(150);
-						break;
-						
-					case "emergency_number":
-						column.setText("Emergency Number");
-						column.setMinWidth(150);
-						break;
-						
-					default:
-						column.setText(myRs.getMetaData().getColumnName(i+1));
-						column.setMinWidth(100);
-						break;
-				}
-				
-				column.setCellValueFactory(new PropertyValueFactory<>(myRs.getMetaData().getColumnName(i+1)));
-				tableView.getColumns().add(column);
-			}
+			TableColumn< Employee, String> column7 = new TableColumn<>("Social Security Number");
+	        column7.setMinWidth(175);
+	        column7.setCellValueFactory( new PropertyValueFactory<>("social_security_number"));
+			tableView.getColumns().add(column7);
+			
+			TableColumn< Employee, String> column8 = new TableColumn<>("Birth Date");
+	        column8.setMinWidth(100);
+	        column8.setCellValueFactory( new PropertyValueFactory<>("birth_date"));
+			tableView.getColumns().add(column8);
+			
+			TableColumn< Employee, String> column9 = new TableColumn<>("Phone Number");
+	        column9.setMinWidth(100);
+	        column9.setCellValueFactory( new PropertyValueFactory<>("phone_number"));
+			tableView.getColumns().add(column9);
+			
+			TableColumn< Employee, String> column10 = new TableColumn<>("Emergency Contact");
+	        column10.setMinWidth(150);
+	        column10.setCellValueFactory( new PropertyValueFactory<>("emergency_contact"));
+			tableView.getColumns().add(column10);
+			
+			TableColumn< Employee, String> column11 = new TableColumn<>("Emergency Number");
+	        column11.setMinWidth(150);
+	        column11.setCellValueFactory( new PropertyValueFactory<>("emergency_number"));
+			tableView.getColumns().add(column11);
+	
 			
 			//Filling up tableView with data
-			tableView.setItems(dbData);
+			tableView.setItems(model.getData());
 			tableView.setMaxHeight(500);
-		}
-		catch(Exception exc) 
-		{
-			exc.printStackTrace();
-		}
-		finally 
-		{
-			close(myConn, myStat, myRs);
-		}
-	}
-	
-	//Extracting data from ResultSet to ArrayList
-	private ArrayList dbData(ResultSet resultSet) throws SQLException 
-	{
-		
-		ArrayList<Employee> data = new ArrayList<>();
-		while(resultSet.next()) 
-		{
-			Employee Employee = new Employee();
-			//Employee.setId(resultSet.getInt("id"));
-			Employee.setFirst_name(resultSet.getString("first_name"));
-			Employee.setFirst_name(resultSet.getString("last_name"));
-			Employee.setStart_date(resultSet.getString("start_date"));
-			Employee.setStart_salary(resultSet.getInt("start_salary"));
-			Employee.setEmployee_contract_signed("employee_contract_signed");
-			Employee.setSocial_security_number("social_security_number");
-			Employee.setBirth_date("birth_date");
-			Employee.setPhone_number("phone_number");
-			Employee.setEmergency_contact("emergency_contact");
-			Employee.setEmergency_number("emergency_number");
-			data.add(Employee);
-		}
-		return data;
 	}
 	
 	public void newEmployee() 
@@ -278,13 +219,18 @@ public class ApplicationView extends Application
 		//Button
 		Button addBtn = new Button("Add Employee");
 		addBtn.setOnAction(e -> {
-			try {
-				addData();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
+
+				//grabbing all the info needed for an employee object from the text fields, we send it to the controller to process
+				Employee newEmployee = new Employee(first_name.getText(), last_name.getText(),
+						start_date.getText(), Integer.parseInt(start_salary.getText()), employee_contract_signed.getText(),
+						social_security_number.getText(), birth_date.getText(), phone_number.getText(), emergency_contact.getText(),
+						emergency_number.getText());
+				
+				tableView.getItems().add(newEmployee);
+				controller.addEmployee(newEmployee);
+
 		});
-		
+		//code needed to create the view needed to add the employee data.
 		add1.setPadding(new Insets(10,10,10,10));
 		add1.setSpacing(10);
 		add1.getChildren().clear();
@@ -300,78 +246,14 @@ public class ApplicationView extends Application
 		layout.getChildren().addAll(menu,add1,add2);
 	}
 	
-	//add to database
-	public void addData() throws SQLException 
-	{
-		Employee d1 = new Employee();
-		d1.setFirst_name(first_name.getText());
-		d1.setLast_name(last_name.getText());
-		d1.setStart_date(start_date.getText());
-		d1.setStart_salary(Integer.parseInt(start_salary.getText()));
-		d1.setEmployee_contract_signed(employee_contract_signed.getText());
-		d1.setSocial_security_number(social_security_number.getText());
-		d1.setBirth_date(birth_date.getText());
-		d1.setPhone_number(phone_number.getText());
-		d1.setEmergency_contact(emergency_contact.getText());
-		d1.setEmergency_number(emergency_number.getText());
-		tableView.getItems().add(d1);
-		
-		//SQL Database Connection Parameters
-		Connection myConn = null;
-		Statement myStat = null;
-		
-		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
-		String dbUsername = "root";
-		String dbPassword = "admin";
-		
-		try {
-			//1. Get a Connection
-			myConn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-			
-			System.out.println("Database Connection successful! \n");
-			
-			//2. Create a statement
-			
-			//3. Execute SQL query
-			PreparedStatement preparedStatement = myConn.prepareStatement("insert into employeeTb(first_name, last_name, start_date, start_salary, "
-					+ "employee_contract_signed, social_security_number, birth_date, phone_number, emergency_contact, emergency_number) "
-					+ "values (?,?,?,?,?,?,?,?,?,?)");
-			preparedStatement.setString(1, first_name.getText());
-			preparedStatement.setString(2, last_name.getText());
-			preparedStatement.setString(3, start_date.getText());
-			preparedStatement.setInt(4, Integer.parseInt(start_salary.getText()));
-			preparedStatement.setString(5, employee_contract_signed.getText());
-			preparedStatement.setString(6, social_security_number.getText());
-			preparedStatement.setString(7, birth_date.getText());
-			preparedStatement.setString(8, phone_number.getText());
-			preparedStatement.setString(9, emergency_contact.getText());
-			preparedStatement.setString(10, emergency_number.getText());
-			preparedStatement.executeUpdate();
-		}
-		catch (Exception exc) {
-			exc.printStackTrace();
-		}
-		finally {
-			close(myConn, myStat, null);
-		}
-		
-		first_name.clear();
-		last_name.clear();
-		start_date.clear();
-		start_salary.clear();
-		employee_contract_signed.clear();
-		social_security_number.clear();
-		birth_date.clear();
-		phone_number.clear();
-		emergency_contact.clear();
-		emergency_number.clear();
-	}
 	
 	HBox updateMenu = new HBox();
 	Button findBtn = new Button("Find");
 	Button updateBtn = new Button("Update");
 	String fir_nam = null;
 	String las_nam = null;
+	
+	//Broken
 	public void updateEmployee() throws SQLException
 	{
 		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
@@ -386,41 +268,42 @@ public class ApplicationView extends Application
 		layout.getChildren().clear();
 		layout.getChildren().addAll(menu, updateMenu);
 		
+		//findBtn.setOnAction(e -> model.searchDateWithFullName(first_name.getText(), last_name.getText()));
 		findBtn.setOnAction(e -> {
-			Connection myConn = null;
-			CallableStatement myStat = null;
-			ResultSet myRs = null;
+			//Connection myConn = null;
+			//CallableStatement myStat = null;
+			//ResultSet myRs = null;
 			try
 			{
 				//1. Get a connection to database
-				myConn = DriverManager.getConnection(dbUrl, user, pass);
+				//myConn = DriverManager.getConnection(dbUrl, user, pass);
 				
-				String fir_nam = first_name.getText();
-				String las_nam = last_name.getText();
+				//String fir_nam = first_name.getText();
+				//String las_nam = last_name.getText();
 				
 				// Prepare the stored procedure call
-				myStat = myConn.prepareCall("{call get_employee(?,?) }");
+				//myStat = myConn.prepareCall("{call get_employee(?,?) }");
 				
 				// Set the Parameters
-				myStat.setString(1, fir_nam);
-				myStat.setString(2, las_nam);
-				myStat.executeQuery();
+				//myStat.setString(1, fir_nam);
+				//myStat.setString(2, las_nam);
+				//myStat.executeQuery();
 				
 				//Get the result set
-				myRs = myStat.getResultSet();
+				//myRs = myStat.getResultSet();
 				
-				ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
-				
+				//ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
+				tableView.setItems(model.searchDateWithFullName(first_name.getText(), last_name.getText()));
 				tableView.setMaxHeight(50);
-				tableView.setItems(dbData);
+				//tableView.setItems(dbData);
 				layout.getChildren().clear();
 				layout.getChildren().addAll(menu, retrieveMenu, tableView);
 				
-				Statement mystat = myConn.createStatement();
-				ResultSet myrs = mystat.executeQuery("select * from employeeTB");
+				//Statement mystat = myConn.createStatement();
+				//ResultSet myrs = mystat.executeQuery("select * from employeeTB");
 			
-				ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
-				tableView.setItems(dbData);
+				//ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
+				//tableView.setItems(dbData);
 			}
 			catch(Exception exc)
 			{
@@ -428,8 +311,8 @@ public class ApplicationView extends Application
 			}
 			finally 
 			{
-				try {
-					close(myConn,myStat,myRs);
+
+					//close(myConn,myStat,myRs);
 					HBox add1 = new HBox();
 					HBox add2 = new HBox();
 					VBox menu = new VBox();
@@ -447,9 +330,6 @@ public class ApplicationView extends Application
 					
 					menu.getChildren().addAll(add1, add2);
 					updateMenu.getChildren().addAll(menu, updateBtn);
-					} catch (SQLException e1) {
-					e1.printStackTrace();
-				}
 			}
 		});
 		
@@ -504,10 +384,6 @@ public class ApplicationView extends Application
 	Button rtvAllBtn = new Button("Retrieve All");
 	public void retrieveEmployee() throws SQLException
 	{
-		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
-		String user = "root";
-		String pass = "admin";
-		
 		retrieveMenu.setPadding(new Insets(10,10,10,10));
 		retrieveMenu.setSpacing(10);
 		retrieveMenu.getChildren().clear();
@@ -515,58 +391,17 @@ public class ApplicationView extends Application
 		
 		layout.getChildren().clear();
 		layout.getChildren().addAll(menu, retrieveMenu);
-		
-		rtvAllBtn.setOnAction(e -> { layout.getChildren().addAll(tableView);});
-		
-		rtvOneBtn.setOnAction(e -> { 
-			
-			Connection myConn = null;
-			CallableStatement myStat = null;
-			ResultSet myRs = null;
-			try
-			{
-				//1. Get a connection to database
-				myConn = DriverManager.getConnection(dbUrl, user, pass);
-				
-				String fir_nam = first_name.getText();
-				String las_nam = last_name.getText();
-				
-				// Prepare the stored procedure call
-				myStat = myConn.prepareCall("{call get_employee(?,?) }");
-				
-				// Set the Parameters
-				myStat.setString(1, fir_nam);
-				myStat.setString(2, las_nam);
-				myStat.executeQuery();
-				
-				//Get the result set
-				myRs = myStat.getResultSet();
-				
-				ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
-				
-				tableView.setMaxHeight(50);
-				tableView.setItems(dbData);
-				layout.getChildren().clear();
-				layout.getChildren().addAll(menu, retrieveMenu, tableView);
-				
-				Statement mystat = myConn.createStatement();
-				ResultSet myrs = mystat.executeQuery("select * from employeeTB");
-			
-				ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
-				tableView.setItems(dbData);
-			}
-			catch(Exception exc)
-			{
-				exc.printStackTrace();
-			}
-			finally 
-			{
-				try {
-					close(myConn,myStat,myRs);
-				} catch (SQLException e1) {
-					e1.printStackTrace();
-				}
-			}
+
+		rtvAllBtn.setOnAction(e -> {
+			tableView.setItems(model.updateAndDisplayAllRecords());
+			layout.getChildren().addAll(tableView);
+		});
+
+		rtvOneBtn.setOnAction(e -> {
+			tableView.setMaxHeight(50);
+			//tableView.setItems();
+			layout.getChildren().clear();
+			layout.getChildren().addAll(menu, retrieveMenu, tableView);
 		});
 	}
 	
@@ -615,18 +450,18 @@ public class ApplicationView extends Application
 				//Get the result set
 				myRs = myStat.getResultSet();
 				
-				ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
+				//ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
 				
 				tableView.setMaxHeight(50);
-				tableView.setItems(dbData);
+				//tableView.setItems(dbData);
 				layout.getChildren().clear();
 				layout.getChildren().addAll(menu, retrieveMenu, tableView);
 				
 				Statement mystat = myConn.createStatement();
 				ResultSet myrs = mystat.executeQuery("select * from employeeTB");
 			
-				ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
-				tableView.setItems(dbData);
+				//ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
+				//tableView.setItems(dbData);
 			}
 			catch(Exception exc)
 			{
@@ -677,24 +512,6 @@ public class ApplicationView extends Application
 				}
 			}
 		});
-	}
-	
-	private static void close(Connection myConn, Statement myStat, ResultSet myRs) throws SQLException 
-	{
-		if(myRs != null)
-		{
-			myRs.close();
-		}
-		
-		if(myStat != null)
-		{
-			myStat.close();
-		}
-		
-		if(myConn != null)
-		{
-			myConn.close();
-		}
 	}
 	
 	private static void close(Connection myConn, PreparedStatement myStat, ResultSet myRs) throws SQLException 
