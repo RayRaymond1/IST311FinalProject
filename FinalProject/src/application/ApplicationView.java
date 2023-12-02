@@ -3,7 +3,7 @@ package application;
 import java.sql.*;
 import java.util.ArrayList;
 
-
+import Model.Employee;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -108,7 +108,11 @@ public class ApplicationView extends Application
 			nwEmpBtn.setOnAction(e -> { newEmployee();});
 			
 			Button updEmpBtn = new Button("Update Employee");
-			updEmpBtn.setOnAction(e -> { updateEmployee();});
+			updEmpBtn.setOnAction(e -> { try {
+				updateEmployee();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}});
 			
 			Button rtvEmpBtn = new Button("Retrieve Employee");
 			rtvEmpBtn.setOnAction(e -> { try {
@@ -118,7 +122,11 @@ public class ApplicationView extends Application
 			}});
 			
 			Button delEmpBtn = new Button("Delete Employee");
-			delEmpBtn.setOnAction(e -> { deleteEmployee();});
+			delEmpBtn.setOnAction(e -> { try {
+				deleteEmployee();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}});
 			
 			menu.setPadding(new Insets(10,10,10,10));
 			menu.setSpacing(10);
@@ -249,9 +257,9 @@ public class ApplicationView extends Application
 		while(resultSet.next()) 
 		{
 			Employee Employee = new Employee();
-			Employee.setId(resultSet.getInt("id"));
+			//Employee.setId(resultSet.getInt("id"));
 			Employee.setFirst_name(resultSet.getString("first_name"));
-			Employee.setLast_name(resultSet.getString("last_name"));
+			Employee.setFirst_name(resultSet.getString("last_name"));
 			Employee.setStart_date(resultSet.getString("start_date"));
 			Employee.setStart_salary(resultSet.getInt("start_salary"));
 			Employee.setEmployee_contract_signed("employee_contract_signed");
@@ -359,9 +367,133 @@ public class ApplicationView extends Application
 		emergency_number.clear();
 	}
 	
-	public void updateEmployee() 
+	HBox updateMenu = new HBox();
+	Button findBtn = new Button("Find");
+	Button updateBtn = new Button("Update");
+	String fir_nam = null;
+	String las_nam = null;
+	public void updateEmployee() throws SQLException
 	{
+		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
+		String user = "root";
+		String pass = "admin";
 		
+		updateMenu.setPadding(new Insets(10,10,10,10));
+		updateMenu.setSpacing(10);
+		updateMenu.getChildren().clear();
+		updateMenu.getChildren().addAll(findBtn, first_name, last_name);
+		
+		layout.getChildren().clear();
+		layout.getChildren().addAll(menu, updateMenu);
+		
+		findBtn.setOnAction(e -> {
+			Connection myConn = null;
+			CallableStatement myStat = null;
+			ResultSet myRs = null;
+			try
+			{
+				//1. Get a connection to database
+				myConn = DriverManager.getConnection(dbUrl, user, pass);
+				
+				String fir_nam = first_name.getText();
+				String las_nam = last_name.getText();
+				
+				// Prepare the stored procedure call
+				myStat = myConn.prepareCall("{call get_employee(?,?) }");
+				
+				// Set the Parameters
+				myStat.setString(1, fir_nam);
+				myStat.setString(2, las_nam);
+				myStat.executeQuery();
+				
+				//Get the result set
+				myRs = myStat.getResultSet();
+				
+				ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
+				
+				tableView.setMaxHeight(50);
+				tableView.setItems(dbData);
+				layout.getChildren().clear();
+				layout.getChildren().addAll(menu, retrieveMenu, tableView);
+				
+				Statement mystat = myConn.createStatement();
+				ResultSet myrs = mystat.executeQuery("select * from employeeTB");
+			
+				ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
+				tableView.setItems(dbData);
+			}
+			catch(Exception exc)
+			{
+				exc.printStackTrace();
+			}
+			finally 
+			{
+				try {
+					close(myConn,myStat,myRs);
+					HBox add1 = new HBox();
+					HBox add2 = new HBox();
+					VBox menu = new VBox();
+					
+					add1.setPadding(new Insets(10,10,10,10));
+					add1.setSpacing(10);
+					add1.getChildren().clear();
+					add1.getChildren().addAll(first_name,last_name, start_date, start_salary, employee_contract_signed);
+					
+					add2.setPadding(new Insets(10,10,10,10));
+					add2.setSpacing(10);
+					add2.getChildren().clear();
+					add2.getChildren().addAll(social_security_number, birth_date, phone_number, 
+							 emergency_contact, emergency_number);
+					
+					menu.getChildren().addAll(add1, add2);
+					updateMenu.getChildren().addAll(menu, updateBtn);
+					} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		updateBtn.setOnAction(e -> {
+			
+			Connection myConn = null;
+			PreparedStatement myStat = null;
+			ResultSet myRs = null;
+			try {
+				
+				//1. Get a connection to database
+				myConn = DriverManager.getConnection(dbUrl, user, pass);
+				
+				fir_nam = first_name.getText();
+				las_nam = last_name.getText();
+				
+				myStat = myConn.prepareStatement("UPDATE employeeTb SET(first_name, last_name, start_date, start_salary, "
+						+ "employee_contract_signed, social_security_number, birth_date, phone_number, emergency_contact, emergency_number) "
+						+ "values (?,?,?,?,?,?,?,?,?,?) WHERE first_name=? and last_name=?");
+				myStat.setString(1, first_name.getText());
+				myStat.setString(2, last_name.getText());
+				myStat.setString(3, start_date.getText());
+				myStat.setInt(4, Integer.parseInt(start_salary.getText()));
+				myStat.setString(5, employee_contract_signed.getText());
+				myStat.setString(6, social_security_number.getText());
+				myStat.setString(7, birth_date.getText());
+				myStat.setString(8, phone_number.getText());
+				myStat.setString(9, emergency_contact.getText());
+				myStat.setString(10, emergency_number.getText());
+				myStat.setString(11, fir_nam);
+				myStat.setString(12, las_nam);
+				myStat.executeUpdate();
+				
+			} catch (Exception exc) {
+				exc.printStackTrace();
+			}
+			finally {
+				try {
+					close(myConn, myStat, myRs);
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 	}
 	
 	//HBox
@@ -438,12 +570,134 @@ public class ApplicationView extends Application
 		});
 	}
 	
-	public void deleteEmployee()
-	{
+	//HBox
+	HBox deleteMenu = new HBox();
 		
+	//Button
+	Button srchBtn = new Button("Find");
+	Button delBtn = new Button("Delete");
+	
+	public void deleteEmployee() throws SQLException
+	{	
+		String dbUrl = "jdbc:mysql://localhost:3306/projectdb";
+		String user = "root";
+		String pass = "admin";
+		
+		deleteMenu.setPadding(new Insets(10,10,10,10));
+		deleteMenu.setSpacing(10);
+		deleteMenu.getChildren().clear();
+		deleteMenu.getChildren().addAll(srchBtn, first_name, last_name);
+		
+		layout.getChildren().clear();
+		layout.getChildren().addAll(menu, deleteMenu);
+		
+		srchBtn.setOnAction(e -> { 
+			
+			Connection myConn = null;
+			CallableStatement myStat = null;
+			ResultSet myRs = null;
+			try
+			{
+				//1. Get a connection to database
+				myConn = DriverManager.getConnection(dbUrl, user, pass);
+				
+				String fir_nam = first_name.getText();
+				String las_nam = last_name.getText();
+				
+				// Prepare the stored procedure call
+				myStat = myConn.prepareCall("{call get_employee(?,?) }");
+				
+				// Set the Parameters
+				myStat.setString(1, fir_nam);
+				myStat.setString(2, las_nam);
+				myStat.executeQuery();
+				
+				//Get the result set
+				myRs = myStat.getResultSet();
+				
+				ObservableList dbData = FXCollections.observableArrayList(dbData(myRs));
+				
+				tableView.setMaxHeight(50);
+				tableView.setItems(dbData);
+				layout.getChildren().clear();
+				layout.getChildren().addAll(menu, retrieveMenu, tableView);
+				
+				Statement mystat = myConn.createStatement();
+				ResultSet myrs = mystat.executeQuery("select * from employeeTB");
+			
+				ObservableList dbdata = FXCollections.observableArrayList(dbData(myrs));
+				tableView.setItems(dbData);
+			}
+			catch(Exception exc)
+			{
+				exc.printStackTrace();
+			}
+			finally 
+			{
+				try {
+					deleteMenu.getChildren().add(delBtn);
+					close(myConn,myStat,myRs);
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		delBtn.setOnAction(e -> { 
+			Connection myConn = null;
+			PreparedStatement myStat = null;
+			ResultSet myRs = null;
+			try {
+				
+				//1. Get a connection to database
+				myConn = DriverManager.getConnection(dbUrl, user, pass);
+				
+				ObservableList<Employee> Selected_field, All_field;
+				All_field = tableView.getItems();
+				Selected_field = tableView.getSelectionModel().getSelectedItems();
+				Selected_field.forEach( All_field :: remove);
+				
+				fir_nam = first_name.getText();
+				las_nam = last_name.getText();
+				
+				myStat = myConn.prepareStatement("DELETE from employeeTB where first_name=? and last_name=?");
+				
+				myStat.setString(1, fir_nam);
+				myStat.setString(2, las_nam);
+				myRs = myStat.executeQuery();
+				
+			} catch (Exception exc) {
+				exc.printStackTrace();
+			}
+			finally {
+				try {
+					close(myConn, myStat, myRs);
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 	}
 	
 	private static void close(Connection myConn, Statement myStat, ResultSet myRs) throws SQLException 
+	{
+		if(myRs != null)
+		{
+			myRs.close();
+		}
+		
+		if(myStat != null)
+		{
+			myStat.close();
+		}
+		
+		if(myConn != null)
+		{
+			myConn.close();
+		}
+	}
+	
+	private static void close(Connection myConn, PreparedStatement myStat, ResultSet myRs) throws SQLException 
 	{
 		if(myRs != null)
 		{
