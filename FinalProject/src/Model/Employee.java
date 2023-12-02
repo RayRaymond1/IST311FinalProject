@@ -1,4 +1,4 @@
-package application;
+package Model;
 
 public class Employee {
 
@@ -35,6 +35,23 @@ public class Employee {
 			String emergency_contact, String emergency_number)
 	{
 		this.id = id;
+		this.first_name = first_name;
+		this.last_name = last_name;
+		this.start_date = start_date;
+		this.start_salary = start_salary;
+		this.employee_contract_signed = employee_contract_signed;
+		this.social_security_number = social_security_number;
+		this.birth_date = birth_date;
+		this.phone_number = phone_number;
+		this.emergency_contact = emergency_contact;
+		this.emergency_number = emergency_number;
+	}
+	//constructor with no ID param set
+	public Employee(String first_name, String last_name,
+			String start_date, int start_salary, String employee_contract_signed, 
+			String social_security_number, String birth_date, String phone_number, 
+			String emergency_contact, String emergency_number)
+	{
 		this.first_name = first_name;
 		this.last_name = last_name;
 		this.start_date = start_date;
