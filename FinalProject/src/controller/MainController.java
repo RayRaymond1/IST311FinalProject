@@ -37,7 +37,8 @@ public class MainController {
 			view.getTableView().setItems(model.updateAndDisplayAllRecords());
 			view.getRetrieveTab().getTableView().setItems(view.getTableView().getItems());
 		});
-		
+		//this big if else block basically select which search operation to run based on what info is placed into the text fields
+		//in the retrieve tab, the only little weird behavior but its wanted, if theres any data within the ID field. that search method will run instead of anything else.
 		view.getRetrieveTab().getRetrieveOneButton().setOnAction(e -> {
 			if (!view.getRetrieveTab().getID().getText().isBlank()) {
 				
@@ -84,6 +85,7 @@ public class MainController {
        
        //setting each colummn's listener to update the employee object associated and the database entry. 
         view.getTableView().getColumns().get(0).setOnEditCommit(e -> {
+        	//had to do a obtuse way of grabbing the old ID before we change it, since onEditCommit doesnt give us objects before theyre edited
         	int oldEmployeeId = (int) e.getOldValue();
         	model.updateEmployee(oldEmployeeId, (Employee) e.getRowValue());
         });

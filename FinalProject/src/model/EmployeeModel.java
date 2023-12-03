@@ -13,7 +13,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
 public class EmployeeModel {
-	
+	//the SQL creds will never change, so why not make them a static variable that we can call.
 	public final static String DB_URL = "jdbc:mysql://localhost:3306/projectdb";
 	public final static String DB_USERNAME = "root";
 	public final static String DB_PASSWORD = "admin";
@@ -22,7 +22,9 @@ public class EmployeeModel {
 	private ObservableList<Employee> employeeList = FXCollections.observableArrayList();
 
 	public EmployeeModel() {
-		// handle taking whats in the SQL database and adding it to the list
+		//this is a try-with-resources statement, this is a try-catch statement but inside of the parentheses of the try statement
+		//we can call upon resources that will be only used for the try statement and automatically closed once we exit it. removing the need to do a finally close statement
+		//try-with-resource statements are all over this project from how concise it makes things.
 		try (Connection myConn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
 				PreparedStatement preparedStatement = myConn.prepareStatement("SELECT * FROM employeetb WHERE id BETWEEN 1 AND 4");
 				ResultSet myRs = preparedStatement.executeQuery();) {
@@ -100,6 +102,7 @@ public class EmployeeModel {
 		}
 	}
 	
+	//using the old employee object's id we can use that to find which object to update, and pass in the new employee object to fill in the SQL query
 	public void updateEmployee(int oldEmployeeId, Employee updatedEmployee) {
 		try (Connection myConn = DriverManager.getConnection(DB_URL, DB_USERNAME,DB_PASSWORD);
 				PreparedStatement preparedStatement = myConn
@@ -135,7 +138,7 @@ public class EmployeeModel {
 	public ObservableList<Employee> getData() {
 		return employeeList;
 	}
-	
+	//this is basically the same code thats in the constructor, this is for the retrieve all records button. can also be used for anything that needs a table refresh
 	public ObservableList<Employee> updateAndDisplayAllRecords()
 	{
 		try (Connection myConn = DriverManager.getConnection(DB_URL, DB_USERNAME,DB_PASSWORD);

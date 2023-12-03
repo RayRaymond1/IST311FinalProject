@@ -26,7 +26,7 @@ public class CreateEmployeeTab extends Tab {
 		super("Create Employee Record");
 		setClosable(false);
 		
-		//Initialize all text fields, the stack pane, and add button
+		//Initialize all the textfields, the boxes need to display onto the UI, and the buttons to run functions
 		content = new VBox();
 		
 		addButton = new Button("Add");
@@ -99,6 +99,7 @@ public class CreateEmployeeTab extends Tab {
 		return addButton;
 	}
 	
+	//making this function here, even though its used once makes the code so much easier
 	private void clearAllFields() {
 		id.clear();
 		first_name.clear();
@@ -113,6 +114,7 @@ public class CreateEmployeeTab extends Tab {
 		emergency_number.clear();
 	}
 	
+	//this function here is for the controller, so it can pass what we have in the textfields as an employee object and place it in our model's data and SQL database
 	public Employee createEmployeeFromFields() {
 		Employee newEmployee = new Employee(first_name.getText(), last_name.getText(), start_date.getText(),
 				Integer.parseInt(start_salary.getText()), employee_contract_signed.getText(), social_security_number.getText(),

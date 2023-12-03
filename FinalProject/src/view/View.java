@@ -13,9 +13,10 @@ import model.Employee;
 
 public class View extends Application{
 	
+	
 	private CreateEmployeeTab createTab; 
 	private RetrieveEmployeeTab retrieveTab;
-	private TableView<Employee> tableView;
+	private TableView<Employee> tableView; //the table is stored in the main view file since it will be constantly be reused and can be used for future tabs.
 	
     @Override
     public void start(Stage primaryStage) {

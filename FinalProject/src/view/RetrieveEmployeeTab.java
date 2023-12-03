@@ -25,6 +25,8 @@ public class RetrieveEmployeeTab extends Tab {
 		super("View Employee Records");
 		setClosable(false);
 		
+		//Initialize all the textfields, the boxes need to display onto the UI, and the buttons to run functions
+		//and a label to detail the controls of this tab view.
 		this.tableView = tableView;
 		
 		retrieveAllButton = new Button("Retrieve All Records");
@@ -60,6 +62,7 @@ public class RetrieveEmployeeTab extends Tab {
 		setContent(content);
 	}
 
+	//getters and setters for the controller to grab whats needed
 	public TableView<Employee> getTableView() {
 		return tableView;
 	}
